@@ -2,14 +2,9 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!78 &1
 TagManager:
-<<<<<<< Updated upstream
-  serializedVersion: 2
-  tags: []
-=======
   serializedVersion: 3
   tags:
   - BubbleTxt
->>>>>>> Stashed changes
   layers:
   - Default
   - TransparentFX
@@ -47,8 +42,6 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-<<<<<<< Updated upstream
-=======
   - name: Foreground
     uniqueID: 3182179471
     locked: 0
@@ -58,4 +51,3 @@ TagManager:
   m_RenderingLayers:
   - Default
   m_MigratedRenderPipelines: []
->>>>>>> Stashed changes
