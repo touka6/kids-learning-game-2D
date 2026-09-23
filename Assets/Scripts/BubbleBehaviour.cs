@@ -8,11 +8,7 @@ public class BubbleBehaviour : MonoBehaviour
     
     public GameObject obj;
     public GameObject gnd;
-    
-    void Update()
-    {
-        
-    }
+
     void OnCollisionEnter2D(Collision2D collision)
     {
         Destroy(obj);
