@@ -1,47 +1,82 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BubbleSpawner : MonoBehaviour
 {
-    private static WaitForSeconds _waitForSeconds1_5 = new WaitForSeconds(1.5f);
+    Camera cam;
     public GameObject obj;
+    public TargetSpawner ts;
+    public Transform bubbleParent;
     GameObject tst;
-    public int count = 10;
+    // public int count = 10;
     public float waitScnds = 1.5f;
-    int len = 11;
-    void Start()
-    {
-        // CreateObj(obj);
-        StartCoroutine(Waiter(obj));
-    }
+    int count = 0;
+    public int targetSpawnInterval = 5;
+    public int margin = 1;
 
+    public GameLogic gl;
+    char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
+
+    void Awake()
+    {
+        cam = Camera.main;
+    }
     IEnumerator Waiter(GameObject bubble)
     {
-        HashSet<float> hs = new(len);
+        HashSet<int> hs = new();
         bool isDuplicate = false;
-        float tmp = float.PositiveInfinity;
-        for(int i=1; i<=count; i++)
+        int previousLen = 0;
+
+        while (gl.TargetTimer>0f)
         {
-            float rnd = Random.Range(-5,6);
+            int left = (int)cam.ViewportToWorldPoint(new Vector3(0f, 0f, 0f)).x;
+            int right = (int)cam.ViewportToWorldPoint(new Vector3(1f, 0f, 0f)).x;
+            int len = (right - margin) - (left + margin);
             
-            if(hs.Count == len)
+            if (len != previousLen)
             {
-                tmp = rnd;
+                hs.Clear();
+                previousLen = len;
+            }
+
+            int rnd = Random.Range(left+margin, right-margin);
+
+            if(hs.Count >= previousLen)
+            {
                 hs.Clear();
             }
 
-            tst = Instantiate(bubble);
+            tst = Instantiate(bubble, bubbleParent);
+            count+=1;
+            BubbleMovement mv = tst.GetComponent<BubbleMovement>();
+            mv.SetSpeed(gl.bubbleSpeed);
 
-            if (hs.Contains(rnd) || tmp==rnd)
+            if(count==targetSpawnInterval)
+            {
+                ts.SpawnTarget(tst);
+                count = 0;
+            }
+            else
+            {
+                if (gl.GetCurrentStage() == GameLogic.GameStage.Numbers)
+                    AssignRandNum(tst);
+                else if (gl.GetCurrentStage() == GameLogic.GameStage.Alphabet)
+                    AssignRandAlph(tst);
+            }
+
+            if (hs.Contains(rnd))
             {
                 isDuplicate = true;
             }    
             while (isDuplicate)
             {
-                rnd = Random.Range(-5,6);
-                if (!hs.Contains(rnd) && !(tmp==rnd))
+                rnd = Random.Range(left+margin, right-margin);
+                if (!hs.Contains(rnd))
                 {
                     isDuplicate = false;
                     break;
@@ -53,6 +88,36 @@ public class BubbleSpawner : MonoBehaviour
             tst.transform.position = spawnPosition;
 
             yield return new WaitForSeconds(waitScnds);
+
+            
+                
         }
+        // Debug.Log("spawner ended");
+    }
+
+    public void StartSpawning()
+    {
+        count = 0;
+        StartCoroutine(Waiter(obj));
+    }
+    public int GetCount()
+    {
+        return count;
+    }
+    void AssignRandNum(GameObject obj)
+    {
+        int rnd = Random.Range(1,11);
+        BubbleData data = obj.GetComponent<BubbleData>();
+        while (rnd.ToString()==gl.GetTarget())
+            rnd = Random.Range(1,11);
+        data.SetValue(rnd.ToString());
+    }
+    void AssignRandAlph(GameObject obj)
+    {
+        int rnd = Random.Range(0,26);
+        BubbleData data = obj.GetComponent<BubbleData>();;
+        while (alphabet[rnd].ToString()==gl.GetTarget())
+            rnd = Random.Range(0,26);
+        data.SetValue(alphabet[rnd].ToString());
     }
 }

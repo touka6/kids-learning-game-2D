@@ -16,19 +16,24 @@ public class InputManagement : MonoBehaviour
     private void OnDisable()
     {
         EnhancedTouch.Touch.onFingerDown -= FingerDown;
-        EnhancedTouch.EnhancedTouchSupport.Disable();
         EnhancedTouch.TouchSimulation.Disable();
+        EnhancedTouch.EnhancedTouchSupport.Disable();
     }
     private void FingerDown(EnhancedTouch.Finger finger)
     {
+        // Debug.Log(
+        // "Finger: " + finger.index +
+        // " Position: " + finger.currentTouch.screenPosition +
+        // " | Active touches: " + EnhancedTouch.Touch.activeTouches.Count
+        // );
         Vector2 FingerPosition = finger.currentTouch.screenPosition;
         Vector3 WorldPoint = cam.ScreenToWorldPoint(FingerPosition);
         Collider2D hit = Physics2D.OverlapPoint(WorldPoint);
-        if (Physics2D.OverlapPoint(WorldPoint))
+        if (hit != null)
         {
             // Debug.Log("finger");
+            gl.CheckScore(hit.gameObject);
             Destroy(hit.gameObject);
-            gl.IncScore();
         }
     }
     void Update()
@@ -36,14 +41,13 @@ public class InputManagement : MonoBehaviour
         Vector2 MousePosition = Mouse.current.position.ReadValue();
         Vector3 WorldPoint = cam.ScreenToWorldPoint(MousePosition);
         Collider2D hit = Physics2D.OverlapPoint(WorldPoint);
-        // hit.tag == ;
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
-            if (Physics2D.OverlapPoint(WorldPoint))
+            if (hit != null)
             {
                 // Debug.Log("cursor");
+                gl.CheckScore(hit.gameObject);
                 Destroy(hit.gameObject);
-                gl.IncScore();
             }
             
         }
