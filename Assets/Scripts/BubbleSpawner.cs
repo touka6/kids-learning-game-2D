@@ -22,6 +22,8 @@ public class BubbleSpawner : MonoBehaviour
     public GameLogic gl;
     char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
 
+    public GameEffects ge;
+
     void Awake()
     {
         cam = Camera.main;
@@ -32,7 +34,7 @@ public class BubbleSpawner : MonoBehaviour
         bool isDuplicate = false;
         int previousLen = 0;
 
-        while (gl.TargetTimer>0f)
+        while (gl.scrnTimer>0f)
         {
             int left = (int)cam.ViewportToWorldPoint(new Vector3(0f, 0f, 0f)).x;
             int right = (int)cam.ViewportToWorldPoint(new Vector3(1f, 0f, 0f)).x;
@@ -54,6 +56,8 @@ public class BubbleSpawner : MonoBehaviour
             tst = Instantiate(bubble, bubbleParent);
             count+=1;
             BubbleMovement mv = tst.GetComponent<BubbleMovement>();
+            BubbleBehaviour behaviour = tst.GetComponent<BubbleBehaviour>();
+            behaviour.ge = ge;
             mv.SetSpeed(gl.bubbleSpeed);
 
             if(count==targetSpawnInterval)
