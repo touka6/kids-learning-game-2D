@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System.Collections;
+using System.Collections.Generic;
 
 public class GameLogic : MonoBehaviour
 {
@@ -26,11 +27,12 @@ public class GameLogic : MonoBehaviour
     public float fastBubbleSpeed = 4f;
 
     [Header("Timer")]
-    public float TargetTimer = 60.0f;
+    public float scrnTimer = 60.0f;
     public float numStageDuration = 60.0f;
     public float alphStageDuration = 60.0f;
     public float ChangeSpeedTime = 30f;
     public float targetChangeAt = 10f;
+    public float playTargetInterval = 3f;
 
 
     bool TimerEnded;
@@ -40,10 +42,14 @@ public class GameLogic : MonoBehaviour
     public BubbleSpawner spawner;
     BubbleData data;
     public Transform bubbleParent;
+    public GameEffects ge;
     
 
     int Score = 0;
     char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
+
+    HashSet<int> NumHS = new();
+    HashSet<int> AlphHS = new();
 
     
     void Start()
@@ -75,7 +81,7 @@ public class GameLogic : MonoBehaviour
     void StartNumStage()
     {
         currentStage = GameStage.Numbers;
-        TargetTimer = numStageDuration;
+        scrnTimer = numStageDuration;
         bubbleSpeed = normalBubbleSpeed;
         TimerEnded = false;
         RandNumTarget();
@@ -85,7 +91,7 @@ public class GameLogic : MonoBehaviour
     {
         currentStage = GameStage.Alphabet;
         txt.text = "";
-        TargetTimer = alphStageDuration;
+        scrnTimer = alphStageDuration;
         bubbleSpeed = normalBubbleSpeed;
         TimerEnded = false;
         RandAlphTarget();
@@ -114,18 +120,30 @@ public class GameLogic : MonoBehaviour
 //############################    
     public float RandNumTarget()
     {
-        float rnd = Random.Range(1,11);
+        if(NumHS.Count>=10)
+            NumHS.Clear();
+        int rnd = Random.Range(1,11);
+        while (NumHS.Contains(rnd))
+            rnd = Random.Range(1,11);
+
+        NumHS.Add(rnd);
         displayedTarget.text = rnd.ToString();
         Target = rnd.ToString();
-        //test
+        ge.PlayNum(Target, playTargetInterval);
         return rnd;
     }
     public float RandAlphTarget()
     {
+        if(AlphHS.Count>=26)
+            AlphHS.Clear();
         int rnd = Random.Range(0,26);
+        while (AlphHS.Contains(rnd))
+            rnd = Random.Range(0,26);
+
+        AlphHS.Add(rnd);
         displayedTarget.text = alphabet[rnd].ToString();
         Target = alphabet[rnd].ToString();
-        //test
+        ge.PlayAlph(Target, playTargetInterval);
         return rnd;
     }
 //############################
@@ -138,36 +156,37 @@ public class GameLogic : MonoBehaviour
         if(TimerEnded)
             return;
 
-        TargetTimer -= Time.deltaTime;
+        scrnTimer -= Time.deltaTime;
 
         ChangeSpeed();
         
-        if (TargetTimer <= 0f)
+        if (scrnTimer <= 0f)
         {
-            TargetTimer = 0f;
+            scrnTimer = 0f;
             TimerEnded = true;
             displayedTimer.text = "0";
             NextStage();
             // Debug.Log("time's up");
             return;
         }
-        displayedTimer.text = Mathf.CeilToInt(TargetTimer).ToString("#");
+        displayedTimer.text = Mathf.CeilToInt(scrnTimer).ToString("#");
     }
-    public void CheckScore(GameObject obj)
+    public bool CheckScore(GameObject obj)
     {
         data = obj.GetComponent<BubbleData>();
         if(Target == data.GetValue())
         {
             Score+=1;
             // Debug.Log(Score);
-            displayedScore.text = Score.ToString();    
+            displayedScore.text = Score.ToString();  
+            return true;  
         }
-        
+        return false;
     }
 
     void ChangeSpeed()
     {
-        if(TargetTimer <= ChangeSpeedTime)
+        if(scrnTimer <= ChangeSpeedTime)
         {
             bubbleSpeed = fastBubbleSpeed;
         }

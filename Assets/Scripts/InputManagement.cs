@@ -6,6 +6,7 @@ public class InputManagement : MonoBehaviour
 {
     public Camera cam;
     public GameLogic gl;
+    public GameEffects ge;
     
     private void OnEnable()
     {
@@ -29,11 +30,15 @@ public class InputManagement : MonoBehaviour
         Vector2 FingerPosition = finger.currentTouch.screenPosition;
         Vector3 WorldPoint = cam.ScreenToWorldPoint(FingerPosition);
         Collider2D hit = Physics2D.OverlapPoint(WorldPoint);
-        if (hit != null)
+        if (hit == null)
+        {
+            ge.PlayMissSound();
+            ge.ShowMissText(FingerPosition);
+        }
+        else
         {
             // Debug.Log("finger");
-            gl.CheckScore(hit.gameObject);
-            Destroy(hit.gameObject);
+            HitBubble(hit, gl.CheckScore(hit.gameObject), FingerPosition);
         }
     }
     void Update()
@@ -43,13 +48,35 @@ public class InputManagement : MonoBehaviour
         Collider2D hit = Physics2D.OverlapPoint(WorldPoint);
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
-            if (hit != null)
+            if (hit == null)
+            {
+                ge.PlayMissSound();
+                ge.ShowMissText(MousePosition);
+            }
+            else
             {
                 // Debug.Log("cursor");
-                gl.CheckScore(hit.gameObject);
-                Destroy(hit.gameObject);
+                HitBubble(hit, gl.CheckScore(hit.gameObject), MousePosition);
             }
             
         }
+    }
+    void HitBubble(Collider2D hit, bool check, Vector2 pos)
+    {
+        ge.BubblePopParticle(hit.transform.position);
+
+        if (check == true)
+        {
+            ge.PlayHitSound();
+            ge.ShowHitText(pos);
+        }
+        else
+        {
+            ge.PlayFailSound();
+            ge.ShowFailText(pos);
+        }
+            
+        
+        Destroy(hit.gameObject);
     }
 }
