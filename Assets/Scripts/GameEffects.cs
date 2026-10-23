@@ -11,14 +11,23 @@ public class GameEffects : MonoBehaviour
     public AudioClip hitSound;
     public AudioClip failSound;
     public AudioClip missSound;
+    public AudioClip music;
+    public AudioClip startCountdownSound;
+    public AudioClip endCountdownSound;
+    public AudioClip[] CongratsSound;
 
     [Header("AudioSource")]
     public AudioSource SFX_audioSource;
     public AudioSource Voice_audioSource;
+    public AudioSource Music_audioSource;
+    public AudioSource Countdown_audioSource;
+
+    [Header("ParticleSystems")]
+    public ParticleSystem POPps;
+    public ParticleSystem[] Congratsps;
+    // public ParticleSystem TRAILps;
 
     [Header("Others")]
-    public ParticleSystem POPps;
-    // public ParticleSystem TRAILps;
     public TMP_Text txt;
     public CanvasGroup cg;
     public GameObject FeedBackTxt;
@@ -30,15 +39,33 @@ public class GameEffects : MonoBehaviour
     Coroutine voiceCoroutine;
 
 
+//#################################
+//       PLAY ParticleEffect
     public void BubblePopParticle(Vector3 pos)
     {
         ParticleSystem effect = Instantiate(POPps, pos, Quaternion.identity);
         Destroy(effect.gameObject, 1f);
     }
-    public void BubbleTrailEffect(Vector3 pos)
+    IEnumerator CongratsParticle()
     {
-        // ParticleSystem effect = Instantiate(TRAILps, pos, Quaternion.identity);
-        // Destroy(effect.gameObject, 1f);
+        PlayCongratsSound();
+        yield return new WaitForSeconds(1f);
+        foreach (ParticleSystem ps in Congratsps)
+        {
+            Vector3 pos = new(Random.Range(-6f,6f), Random.Range(-3f,3f), 0f);
+
+            ParticleSystem effect = Instantiate(ps, pos, Quaternion.identity);
+            
+            PlayFireworkSound();
+
+            yield return new WaitForSeconds(1f);
+
+            Destroy(effect, 20f);
+        }
+    }
+    public void StartCongratsParticle()
+    {
+        StartCoroutine(CongratsParticle());
     }
 
 
@@ -46,17 +73,36 @@ public class GameEffects : MonoBehaviour
 //           PLAY SFX
     public void PlayHitSound()
     {
+        SFX_audioSource.volume = 0.7f;
         SFX_audioSource.PlayOneShot(hitSound);
+        
     }
     public void PlayFailSound()
     {
+        SFX_audioSource.volume = 1.0f;
         SFX_audioSource.PlayOneShot(failSound);
     }
     public void PlayMissSound()
     {
+        SFX_audioSource.volume = 1.0f;
         SFX_audioSource.PlayOneShot(missSound);
     }
-
+    public void PlayStartCountDown()
+    {
+        Countdown_audioSource.PlayOneShot(startCountdownSound);
+    }
+    public void PlayEndCountDown()
+    {
+        Countdown_audioSource.PlayOneShot(endCountdownSound);
+    }
+    public void PlayFireworkSound()
+    {
+        SFX_audioSource.PlayOneShot(CongratsSound[1]);
+    }
+    public void PlayCongratsSound()
+    {
+        SFX_audioSource.PlayOneShot(CongratsSound[0]);
+    }
 
 //#################################
 //      PLAY TARGET VOICE
@@ -65,21 +111,17 @@ public class GameEffects : MonoBehaviour
         AudioClip ac = Resources.Load<AudioClip>("Voices/Numbers/" + num);
         if (ac != null)
         {
-            // Voice_audioSource.PlayOneShot(ac);
-
-            if (voiceCoroutine!=null)
-                StopCoroutine(voiceCoroutine);
-
+            // if (voiceCoroutine!=null)
+            //     StopCoroutine(voiceCoroutine);
+            StopPlayingTarget();
             voiceCoroutine = StartCoroutine(Waiter(ac, scnds));
 
-            // Debug.Log("successfully found the audio");
         }
         else
         {
             Debug.Log("failed to find the audio");
             Debug.Log(num);
         }
-
     }
     public void PlayAlph(string letter, float scnds)
     {
@@ -87,14 +129,10 @@ public class GameEffects : MonoBehaviour
         
         if (ac != null)
         {
-            // Voice_audioSource.PlayOneShot(ac);
-
             if (voiceCoroutine!=null)
                 StopCoroutine(voiceCoroutine);
 
             voiceCoroutine = StartCoroutine(Waiter(ac, scnds));
-
-            // Debug.Log("successfully found the audio");
         }
         else
         {
@@ -111,7 +149,15 @@ public class GameEffects : MonoBehaviour
             yield return new WaitForSeconds(scnds);
         }
     }
-
+    public void StopPlayingTarget()
+    {
+        if(voiceCoroutine != null)
+        {
+            StopCoroutine(voiceCoroutine);
+            voiceCoroutine = null;
+        }
+        Voice_audioSource.Stop();
+    }
 
 //#################################
 //      SHOW TEXT (FEEDBACK)
@@ -141,5 +187,12 @@ public class GameEffects : MonoBehaviour
     public void ShowMissText(Vector3 pos)
     {
         ShowText(pos, "Try Again!", new Color(255, 219, 225));
+    }
+
+//#################################
+//            OTHERS
+    IEnumerator WaitFor(float time)
+    {
+        yield return new WaitForSeconds(time);
     }
 }
