@@ -13,7 +13,6 @@ public class BubbleSpawner : MonoBehaviour
     public TargetSpawner ts;
     public Transform bubbleParent;
     GameObject tst;
-    // public int count = 10;
     public float waitScnds = 1.5f;
     int count = 0;
     public int targetSpawnInterval = 5;
@@ -23,6 +22,7 @@ public class BubbleSpawner : MonoBehaviour
     char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
 
     public GameEffects ge;
+    public SettingManager settings;
 
     void Awake()
     {
@@ -59,6 +59,7 @@ public class BubbleSpawner : MonoBehaviour
             BubbleBehaviour behaviour = tst.GetComponent<BubbleBehaviour>();
             behaviour.ge = ge;
             mv.SetSpeed(gl.bubbleSpeed);
+            mv.SetDirection(settings.GetDirection());
 
             if(count==targetSpawnInterval)
             {
@@ -88,7 +89,12 @@ public class BubbleSpawner : MonoBehaviour
             }
 
             hs.Add(rnd);
-            Vector3 spawnPosition = new(rnd, bubble.transform.position.y, 0);
+
+            float spawnY = bubble.transform.position.y;
+            if(settings.bubbleDirection == SettingManager.BubbleDirection.Up)
+                spawnY = -spawnY;
+
+            Vector3 spawnPosition = new(rnd, spawnY, 0);
             tst.transform.position = spawnPosition;
 
             yield return new WaitForSeconds(waitScnds);
