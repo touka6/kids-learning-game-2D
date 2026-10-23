@@ -35,6 +35,10 @@ public class InputManagement : MonoBehaviour
             ge.PlayMissSound();
             ge.ShowMissText(FingerPosition);
         }
+        else if (hit.GetComponent<BubbleData>() == null)
+        {
+            return;
+        }
         else
         {
             // Debug.Log("finger");
@@ -52,6 +56,10 @@ public class InputManagement : MonoBehaviour
             {
                 ge.PlayMissSound();
                 ge.ShowMissText(MousePosition);
+            }
+            else if (hit.GetComponent<BubbleData>() == null)
+            {
+                return;
             }
             else
             {

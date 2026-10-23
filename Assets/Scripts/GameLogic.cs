@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro;
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 
 public class GameLogic : MonoBehaviour
 {
@@ -20,6 +21,7 @@ public class GameLogic : MonoBehaviour
     public TMP_Text displayedTarget;
     public TMP_Text displayedTimer;
     public TMP_Text txt;
+    public CanvasGroup cg;
 
     [Header("Bubble Speed")]
     public float bubbleSpeed = 2.5f;
@@ -73,8 +75,6 @@ public class GameLogic : MonoBehaviour
         }
         else if(currentStage == GameStage.Alphabet)
         {
-            // currentStage = GameStage.Finished;
-            // FinishedStage();
             StartCoroutine(Starter(GameStage.Finished));
         }
     }
@@ -85,7 +85,7 @@ public class GameLogic : MonoBehaviour
         bubbleSpeed = normalBubbleSpeed;
         TimerEnded = false;
         RandNumTarget();
-        StartCoroutine(ChangeTarget());
+        StartCoroutine(ChangeTarget(GameStage.Numbers));
     }
     void StartAlphStage()
     {
@@ -95,18 +95,20 @@ public class GameLogic : MonoBehaviour
         bubbleSpeed = normalBubbleSpeed;
         TimerEnded = false;
         RandAlphTarget();
-        StartCoroutine(ChangeTarget());
+        StartCoroutine(ChangeTarget(GameStage.Alphabet));
     }
     void FinishedStage()
     {
+        cg.alpha=1f;
         currentStage = GameStage.Finished;
         if (Score >= 3)
         {
-            txt.text = "You Win!";
+            txt.text = $"You Win!\nYour Score: {Score}";
+            ge.StartCongratsParticle();
         }
         else
         {
-            txt.text = "You Lost!";
+            txt.text = $"You Lost!\nYour Score: {Score}";
         }
     }
     public GameStage GetCurrentStage()
@@ -154,7 +156,11 @@ public class GameLogic : MonoBehaviour
     void CheckTime()
     {
         if(TimerEnded)
+        {
+            // ge.StopPlayingTarget();
             return;
+        }
+            
 
         scrnTimer -= Time.deltaTime;
 
@@ -183,7 +189,6 @@ public class GameLogic : MonoBehaviour
         }
         return false;
     }
-
     void ChangeSpeed()
     {
         if(scrnTimer <= ChangeSpeedTime)
@@ -195,6 +200,10 @@ public class GameLogic : MonoBehaviour
     {
         return Target;
     }
+
+
+//        IEnumerator
+//############################    
     IEnumerator Starter(GameStage nextStage)
     {
         currentStage = GameStage.Transition;
@@ -203,27 +212,43 @@ public class GameLogic : MonoBehaviour
         if (nextStage != GameStage.Numbers)
         {
             yield return new WaitUntil(() => bubbleParent.childCount == 0);
+            ge.StopPlayingTarget();
         }
 
         if (nextStage == GameStage.Finished)
         {
             yield return new WaitForSeconds(1f);
+            ge.StopPlayingTarget();
             FinishedStage();
             yield break;
         }
-
+        
+        
         txt.text = "1";
+        cg.alpha = 1f;
+        cg.DOFade(0f,0.5f).SetDelay(0.3f);
+        yield return null;
+        ge.PlayStartCountDown();
         yield return new WaitForSeconds(1f);
 
+        ge.PlayStartCountDown();
         txt.text = "2";
+        cg.alpha = 1f;
+        cg.DOFade(0f,0.5f).SetDelay(0.3f);
         yield return new WaitForSeconds(1f);
 
+        ge.PlayStartCountDown();
         txt.text = "3";
+        cg.alpha = 1f;
+        cg.DOFade(0f,0.5f).SetDelay(0.3f);
         yield return new WaitForSeconds(1f);
 
         if (nextStage == GameStage.Numbers)
         {
+            cg.alpha = 1f;
             txt.text = "Stage 1";
+            cg.DOFade(0f,0.5f).SetDelay(0.5f);
+            ge.PlayEndCountDown();
             yield return new WaitForSeconds(1f);
 
             txt.text = "";
@@ -232,7 +257,10 @@ public class GameLogic : MonoBehaviour
         }
         else if (nextStage == GameStage.Alphabet)
         {
+            cg.alpha = 1f;
             txt.text = "Stage 2";
+            cg.DOFade(0f,0.5f).SetDelay(0.5f);
+            ge.PlayEndCountDown();
             yield return new WaitForSeconds(1f);
 
             txt.text = "";
@@ -241,20 +269,19 @@ public class GameLogic : MonoBehaviour
         }
         
     }
-    IEnumerator ChangeTarget()
+    IEnumerator ChangeTarget(GameStage stage)
     {
-        while (currentStage==GameStage.Numbers || currentStage == GameStage.Alphabet)
+        while (currentStage==stage)
         {
             yield return new WaitForSeconds(targetChangeAt);
+
+            if(currentStage != stage)
+                yield break;
+
             if(currentStage == GameStage.Numbers)
-            {
-                //yield...
                 RandNumTarget();
-            }
             else if (currentStage == GameStage.Alphabet)
-            {
                 RandAlphTarget();
-            }
         }
     }
 //############################
